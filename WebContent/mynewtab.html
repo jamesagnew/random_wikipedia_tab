@@ -1,0 +1,46 @@
+<html>
+
+<head>
+<title>(New Tab)</title>
+<link rel="stylesheet" href="wikistyle1.css">
+<link rel="stylesheet" href="wikistyle2.css">
+<link rel="stylesheet" href="mynewtab.css">
+</head>
+
+<body style="margin: 0px;">
+
+	<div class="headerContainer">
+		<div style="float: left;">
+			<img src="icon30h.png" />
+		</div>
+		<div id="headerDiv">Random Wikipedia Tab</div>
+
+		<div id="andThenDiv">
+			<button id="languagesButton" class="andThenButton">Languages</button>
+		</div>
+		<div id="andThenDiv">
+			<button id="andThenButton" class="andThenButton">And then?</button>
+		</div>
+		
+		<div id="upNext"></div>
+		<div id="upNextTitle">Up Next:&nbsp;</div>
+
+	</div>
+
+	<div id="languagesPanel" class="languagesPanelInactive">
+		<p style="margin: 0px;">Languages:</p>
+		<div id="languagesSubPanel"></div>
+	</div>
+
+	<div id="andThenPanel" class="andThenPanelInactive">
+	</div>
+
+
+	<div id="htmlContents" style="position: relative;"></div>
+
+	<script type="text/javascript" src="WorkerConsole.js"></script>
+	<script type="text/javascript" src="langs.js"></script>
+	<script type="text/javascript" src="tab.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "manifest_version": 2,
+
+  "name": "Random Wikipedia Tab",
+  "description": "Each new tab opens to a random Wikipedia article",
+  "version": "2.1",
+
+  "icons": { 
+      "48": "icon48.png",
+      "128": "icon128.png"
+  },
+  
+  "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
+  
+  "permissions": [
+    "http://en.wikipedia.org/",
+    "storage"
+  ],
+
+  "optional_permissions": [
+    "http://*.wikipedia.org/"
+  ],
+
+  "chrome_url_overrides" : {
+    "newtab": "mynewtab.html"
+  }
+  
+}
