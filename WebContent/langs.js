@@ -1,3 +1,20 @@
+/*
+ * This page lists all possible wikipedia languages and wikia wikis.
+ * 
+ * NB: If you add something here, you also need to declare it
+ * as an optional permission in the manifest. 
+ */
+
+var allWikia = {
+	'Recipes' : 'recipes',
+	'Wookiepedia' : 'starwars',
+	'Logopedia' : 'logos',
+	'How-Tos' : 'how-to',
+	'Dogs and Cats' : 'dogs-cats',
+	'Science' : 'science',
+	'Super Mario' : 'mario'
+};
+
 var allLangs = {
 	'English' : 'en',
 	'German' : 'de',

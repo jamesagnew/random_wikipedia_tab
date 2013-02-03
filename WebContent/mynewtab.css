@@ -55,7 +55,7 @@
 
 .andThenPanel {
 	background: white;
-	z-index: 999;
+	z-index: 200000000;
 	float: right;
 	display: inline;
 	position: relative;
@@ -95,7 +95,11 @@
 }
 
 #languagesSubPanel {
-	-webkit-column-count: 10;
+	-webkit-column-count: 7;
+}
+
+#wikiaSubPanel {
+	-webkit-column-count: 7;
 }
 
 .languagesPanelInactive {

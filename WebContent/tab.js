@@ -79,7 +79,28 @@ function extractTitle(html) {
 }
 
 function getPermissionName(langCode) {
-	return "http://" + langCode + ".wikipedia.org/";
+
+	// Wikipedia
+	if (langCode in allLangs) {
+		return "http://" + allLangs[langCode] + ".wikipedia.org/";
+	}
+	for ( var i in allLangs) {
+		if (allLangs[i] == langCode) {
+			return "http://" + allLangs[i] + ".wikipedia.org/";
+		}
+	}
+
+	// Wikia
+	if (langCode in allWikia) {
+		return "http://" + allWikia[langCode] + ".wikia.com/";
+	}
+	for ( var i in allWikia) {
+		if (allWikia[i] == langCode) {
+			return "http://" + allWikia[i] + ".wikia.com/";
+		}
+	}
+
+	console.log("Couldn't find language: " + langCode);
 }
 
 function pullRequest(cachedPages, languages) {
@@ -88,6 +109,11 @@ function pullRequest(cachedPages, languages) {
 	for ( var nextLang in allLangs) {
 		if (languages.indexOf(nextLang) != -1) {
 			languagesToChooseFrom.push(allLangs[nextLang]);
+		}
+	}
+	for ( var nextLang in allWikia) {
+		if (languages.indexOf(nextLang) != -1) {
+			languagesToChooseFrom.push(allWikia[nextLang]);
 		}
 	}
 
@@ -100,7 +126,7 @@ function pullRequest(cachedPages, languages) {
 
 	console.log("Languages to choose from: " + languages + " / " + languagesToChooseFrom + ", using lang: " + langCode);
 
-	var url = "http://" + langCode + ".wikipedia.org/wiki/Special:Random";
+	var url = getPermissionName(langCode) + "wiki/Special:Random";
 	console.log("Making pull rerquest to " + url);
 
 	chrome.permissions.contains({
@@ -263,49 +289,55 @@ function populateLanguagesPanel() {
 	}, function(items) {
 		var languages = items.languages;
 		var cont = document.getElementById("languagesSubPanel");
+		populateLanguagesPanelWith(languages, allLangs, cont);
 
-		for ( var nextLang in allLangs) {
-			var nobr = document.createElement('nobr');
-			cont.appendChild(nobr);
-			cont.appendChild(document.createElement('br'));
-
-			var cb = document.createElement('input');
-			cb.type = 'checkbox';
-			cb.className = 'langCheckbox';
-			cb.id = "langcb_" + nextLang;
-			cb.checked = languages.indexOf(nextLang) != -1;
-			nobr.appendChild(cb);
-
-			// console.log("Lang '" + nextLang + "' and len: " +
-			// languages.length + ' is ' + (nextLang == "English"));
-			if (nextLang == "English" && languages.length == 0) {
-				cb.checked = true;
-			}
-
-			var label = document.createElement("label");
-			label.htmlFor = "langcb_" + nextLang;
-			label.innerHTML = nextLang + "&nbsp;&nbsp;&nbsp;&nbsp;";
-			nobr.appendChild(label);
-
-			var handler = {
-				handleEvent : function() {
-					toggleLanguage(this.myLanguage, this.myCb.checked);
-					if (this.myCb.checked) {
-						var langPerm = getPermissionName(allLangs[this.myLanguage]);
-						console.log("Checking if we need permission to " + langPerm);
-						chrome.permissions.request({
-							origins : [ langPerm ]
-						});
-					}
-				},
-				myLanguage : nextLang,
-				myCb : cb
-			};
-			cb.onchange = handler;
-
-		}
+		cont = document.getElementById("wikiaSubPanel");
+		populateLanguagesPanelWith(languages, allWikia, cont);
 
 	});
+}
+
+function populateLanguagesPanelWith(theLanguages, theLangsList, theContainer) {
+	for ( var nextLang in theLangsList) {
+		var nobr = document.createElement('nobr');
+		theContainer.appendChild(nobr);
+		theContainer.appendChild(document.createElement('br'));
+
+		var cb = document.createElement('input');
+		cb.type = 'checkbox';
+		cb.className = 'langCheckbox';
+		cb.id = "langcb_" + nextLang;
+		cb.checked = theLanguages.indexOf(nextLang) != -1;
+		nobr.appendChild(cb);
+
+		// console.log("Lang '" + nextLang + "' and len: " +
+		// languages.length + ' is ' + (nextLang == "English"));
+		if (nextLang == "English" && theLanguages.length == 0) {
+			cb.checked = true;
+		}
+
+		var label = document.createElement("label");
+		label.htmlFor = "langcb_" + nextLang;
+		label.innerHTML = nextLang + "&nbsp;&nbsp;&nbsp;&nbsp;";
+		nobr.appendChild(label);
+
+		var handler = {
+			handleEvent : function() {
+				toggleLanguage(this.myLanguage, this.myCb.checked);
+				if (this.myCb.checked) {
+					var langPerm = getPermissionName(this.myLanguage);
+					console.log("Checking if we need permission to " + langPerm);
+					chrome.permissions.request({
+						origins : [ langPerm ]
+					});
+				}
+			},
+			myLanguage : nextLang,
+			myCb : cb
+		};
+		cb.onchange = handler;
+
+	}
 }
 
 function toggleLanguage(language, value) {
@@ -356,7 +388,7 @@ function showRequestAdditionalPermissionsWarningIfNeeded() {
 		var languages = items.languages;
 		var languagePerms = new Array();
 		for ( var nextLang in languages) {
-			languagePerms.push(getPermissionName(allLangs[languages[nextLang]]));
+			languagePerms.push(getPermissionName(languages[nextLang]));
 		}
 
 		chrome.permissions.contains({
