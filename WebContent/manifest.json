@@ -3,7 +3,7 @@
 
   "name": "Random Wikipedia Tab",
   "description": "Each new tab opens to a random Wikipedia article",
-  "version": "2.1",
+  "version": "3.0",
 
   "icons": { 
       "48": "icon48.png",
@@ -18,6 +18,13 @@
   ],
 
   "optional_permissions": [
+		"http://recipes.wikia.com/",
+		"http://starwars.wikia.com/",
+		"http://logos.wikia.com/",
+		"http://how-to.wikia.com/",
+		"http://dogs-cats.wikia.com/",
+		"http://science.wikia.com/",
+		"http://mario.wikia.com/",
 		"http://de.wikipedia.org/",
 		"http://fr.wikipedia.org/",
 		"http://nl.wikipedia.org/",
