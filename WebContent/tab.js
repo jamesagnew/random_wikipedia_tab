@@ -8,75 +8,54 @@ console.log("Starting");
 document.getElementById("andThenButton").addEventListener("click", function() {
 	andThen();
 });
-document.getElementById("languagesButton").addEventListener("click",
-		function() {
-			toggleLanguagesPanel();
-		});
+document.getElementById("languagesButton").addEventListener("click", function() {
+	toggleLanguagesPanel();
+});
 
-storage.get({
-	'cachedPages' : new Array(),
-	'languages' : new Array()
-},
-		function(items) {
-			var cachedPages = items.cachedPages;
-			var languages = items.languages;
-
-			if (cachedPages.length > 0) {
-				document.getElementById('htmlContents').innerHTML = cachedPages
-						.shift();
-				setUpNext(cachedPages);
-
-				storage.set({
-					'cachedPages' : cachedPages
-				});
-			}
-
-			console.log("Load some more? " + cachedPages.length);
-
-			if (cachedPages.length < 10) {
-				pullRequest(cachedPages, languages);
-			}
-
-		});
-
-var _gaq = _gaq || [];
-_gaq.push([ '_setAccount', 'UA-38009834-1' ]);
-_gaq.push([ '_trackPageview' ]);
-
-(function() {
-	var ga = document.createElement('script');
-	ga.type = 'text/javascript';
-	ga.async = true;
-	ga.src = 'https://ssl.google-analytics.com/ga.js';
-	var s = document.getElementsByTagName('script')[0];
-	s.parentNode.insertBefore(ga, s);
-})();
-
+tryToBringUpCachedPage();
+googleAnalytics();
 syncPrefs();
 
-// function logTopElement(cachedPages) {
-// if (cachedPages.length == 0) {
-// console.log("No elements in cache");
-// } else {
-// html = cachedPages[0];
-// var titleMatches = html.match(/\<title\>.* - /);
-// if (titleMatches.length > 0) {
-// var title = titleMatches[0].replace("<title>", "").replace(" - ", "");
-// console.log("First element in cache of " + cachedPages.length + ": " +
-// title);
-// } else {
-// console.log("First element has no title");
-// }
-// }
-// }
-//
-// function logAddTitle(prefix, html) {
-// var titleMatches = html.match(/\<title\>.* - /);
-// if (titleMatches.length > 0) {
-// var title = titleMatches[0].replace("<title>", "").replace(" - ", "");
-// console.log(prefix + title);
-// }
-// }
+function tryToBringUpCachedPage() {
+	storage.get({
+		'cachedPages' : new Array(),
+		'languages' : new Array()
+	}, function(items) {
+		var cachedPages = items.cachedPages;
+		var languages = items.languages;
+
+		if (cachedPages.length > 0) {
+			document.getElementById('htmlContents').innerHTML = cachedPages.shift();
+			setUpNext(cachedPages);
+
+			storage.set({
+				'cachedPages' : cachedPages
+			});
+		}
+
+		console.log("Load some more? " + cachedPages.length);
+
+		if (cachedPages.length < 10) {
+			pullRequest(cachedPages, languages);
+		}
+
+	});
+}
+
+function googleAnalytics() {
+	var _gaq = _gaq || [];
+	_gaq.push([ '_setAccount', 'UA-38009834-1' ]);
+	_gaq.push([ '_trackPageview' ]);
+
+	(function() {
+		var ga = document.createElement('script');
+		ga.type = 'text/javascript';
+		ga.async = true;
+		ga.src = 'https://ssl.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0];
+		s.parentNode.insertBefore(ga, s);
+	})();
+}
 
 function setUpNext(cachedPages) {
 	if (cachedPages.length > 0) {
@@ -99,6 +78,10 @@ function extractTitle(html) {
 	return "";
 }
 
+function getPermissionName(langCode) {
+	return "http://" + langCode + ".wikipedia.org/";
+}
+
 function pullRequest(cachedPages, languages) {
 	var languagesToChooseFrom = new Array();
 
@@ -110,69 +93,75 @@ function pullRequest(cachedPages, languages) {
 
 	var langCode;
 	if (languagesToChooseFrom.length > 0) {
-		langCode = languagesToChooseFrom[Math.floor(Math.random()
-				* languagesToChooseFrom.length)];
+		langCode = languagesToChooseFrom[Math.floor(Math.random() * languagesToChooseFrom.length)];
 	} else {
 		langCode = 'en';
 	}
 
-	console.log("Languages to choose from: " + languages + " / "
-			+ languagesToChooseFrom + ", using lang: " + langCode);
+	console.log("Languages to choose from: " + languages + " / " + languagesToChooseFrom + ", using lang: " + langCode);
 
 	var url = "http://" + langCode + ".wikipedia.org/wiki/Special:Random";
 	console.log("Making pull rerquest to " + url);
 
-	var xhr = new XMLHttpRequest();
+	chrome.permissions.contains({
+		origins : [ getPermissionName(langCode) ]
+	}, function(result) {
+		if (!result) {
+			console.log("Couldn't get access to non-english Wiki. Oh well..");
+			url = "http://en.wikipedia.org/wiki/Special:Random";
+		}
 
-	xhr.open("GET", url, true);
-	xhr.onreadystatechange = function() {
-		console.log("State change " + xhr.readyState);
+		var xhr = new XMLHttpRequest();
 
-		if (xhr.readyState == 4) {
+		xhr.open("GET", url, true);
+		xhr.onreadystatechange = function() {
+			console.log("State change " + xhr.readyState);
 
-			// console.log("Response: " + xhr.responseText);
+			if (xhr.readyState == 4) {
 
-			var html = (xhr.responseText
-					.replace(/href="\/\//g, 'href="http://'));
-			if (html == "") {
-				console.log("Looks like response is empty. Text was: "
-						+ xhr.responseText);
-				console.log(" * Status was: " + xhr.status + " - "
-						+ xhr.statusText);
-				return;
-			}
-			html = html.replace(/href="\//g, 'href="http://en.wikipedia.org/');
-			html = html.replace(/src="\/\//g, 'src="http://');
-			html = html.replace(/url\(\/\//g, 'url(http://');
+				// console.log("Response: " + xhr.responseText);
 
-			if (document.getElementById('htmlContents').innerHTML.length > 0) {
-				storage.get({
-					'cachedPages' : new Array()
-				}, function(items) {
+				var html = (xhr.responseText.replace(/href="\/\//g, 'href="http://'));
+				if (html == "") {
+					console.log("Looks like response is empty. Text was: " + xhr.responseText);
+					console.log(" * Status was: " + xhr.status + " - " + xhr.statusText);
+					return;
+				}
+				html = html.replace(/href="\//g, 'href="http://en.wikipedia.org/');
+				html = html.replace(/src="\/\//g, 'src="http://');
+				html = html.replace(/url\(\/\//g, 'url(http://');
 
-					if (cachedPages.indexOf(html) == -1) {
-						cachedPages.push(html);
-					}
+				if (document.getElementById('htmlContents').innerHTML.length > 0) {
+					storage.get({
+						'cachedPages' : new Array()
+					}, function(items) {
 
-					storage.set({
-						'cachedPages' : cachedPages
+						if (cachedPages.indexOf(html) == -1) {
+							cachedPages.push(html);
+						}
+
+						storage.set({
+							'cachedPages' : cachedPages
+						});
+
+						setUpNext(cachedPages);
 					});
 
-					setUpNext(cachedPages);
-				});
+				} else {
+					document.getElementById('htmlContents').innerHTML = html;
+				}
 
-			} else {
-				document.getElementById('htmlContents').innerHTML = html;
+				if (cachedPages.length < 10) {
+					pullRequest(cachedPages, languages);
+				}
+
 			}
-
-			if (cachedPages.length < 10) {
-				pullRequest(cachedPages, languages);
-			}
-
 		}
-	};
 
-	xhr.send();
+		xhr.send();
+
+	});
+
 }
 
 function andThen() {
@@ -301,6 +290,13 @@ function populateLanguagesPanel() {
 			var handler = {
 				handleEvent : function() {
 					toggleLanguage(this.myLanguage, this.myCb.checked);
+					if (this.myCb.checked) {
+						var langPerm = getPermissionName(allLangs[this.myLanguage]);
+						console.log("Checking if we need permission to " + langPerm);
+						chrome.permissions.request({
+							origins : [ langPerm ]
+						});
+					}
 				},
 				myLanguage : nextLang,
 				myCb : cb
@@ -321,6 +317,9 @@ function toggleLanguage(language, value) {
 		var languages = items.languages;
 
 		if (value && languages.indexOf(language) == -1) {
+			if (languages.length == 0 && language != 'English') {
+				languages.push("English");
+			}
 			languages.push(language);
 		}
 
@@ -328,8 +327,7 @@ function toggleLanguage(language, value) {
 			var oldLanguages = languages;
 			languages = new Array();
 			for ( var next in oldLanguages) {
-				if (oldLanguages[next] != language
-						&& allLangs[oldLanguages[next]] != null) {
+				if (oldLanguages[next] != language && allLangs[oldLanguages[next]] != null) {
 					languages.push(oldLanguages[next]);
 				}
 			}
@@ -349,6 +347,38 @@ function toggleLanguage(language, value) {
 
 }
 
+function showRequestAdditionalPermissionsWarningIfNeeded() {
+	// permissionWarningDiv
+
+	storage.get({
+		'languages' : new Array()
+	}, function(items) {
+		var languages = items.languages;
+		var languagePerms = new Array();
+		for ( var nextLang in languages) {
+			languagePerms.push(getPermissionName(allLangs[languages[nextLang]]));
+		}
+
+		chrome.permissions.contains({
+			origins : languagePerms
+		}, function(result) {
+			if (!result) {
+
+				document.getElementById("permissionWarningDiv").style.display = "";
+				document.getElementById("permissionWarningImg").addEventListener("click", function() {
+					console.log("Requesting permissions: " + languagePerms);
+					chrome.permissions.request({
+						origins : languagePerms
+					});
+				});
+
+			}
+		});
+
+	});
+
+}
+
 function toggleLanguagesPanel() {
 	var panel = document.getElementById("languagesPanel");
 	if (panel.className == "languagesPanel") {
@@ -361,7 +391,7 @@ function toggleLanguagesPanel() {
 
 function syncPrefs() {
 	console.log("Starting storage sync");
-	
+
 	storage.get({
 		'languages' : new Array()
 	}, function(items) {
@@ -386,6 +416,8 @@ function syncPrefs() {
 				console.log("Languages already in sync");
 			}
 
+			// Put up the warning icon to request additional perms
+			showRequestAdditionalPermissionsWarningIfNeeded();
 		});
 
 	});

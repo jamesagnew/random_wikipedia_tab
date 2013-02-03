@@ -95,7 +95,7 @@
 }
 
 #languagesSubPanel {
-	-webkit-column-count: 10;	
+	-webkit-column-count: 10;
 }
 
 .languagesPanelInactive {
@@ -114,4 +114,24 @@
 
 .langCheckbox {
 	display: inline;
+}
+
+#permissionWarningDiv {
+	cursor: pointer;
+	float: left;
+	position: relative;
+	left: 10px;
+	top: 3px;
+}
+
+#ossDiv {
+	left: 8px;
+	position: relative;
+	top: 12px;
+	font-size: 10px;
+	float: left;
+}
+
+#ossA:HOVER {
+	text-decoration: underline;
 }
